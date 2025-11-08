@@ -1,134 +1,1328 @@
 <!DOCTYPE html>
-<html lang="en-us">
-
+<html lang="tr">
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-    <title>Unity WebGL Player | UnityTest</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mormaker - Karakter ve Oyun Merkezi</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
-    <link rel="stylesheet" href="TemplateData/style.css">
-</head>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
+        :root {
+            --primary-color: #9B5DE0;
+            --primary-light: #B48AEC;
+            --primary-dark: #7A3DBD;
+            --accent-color: #FF6B6B;
+            --accent-light: #FF9E9E;
+            --text-dark: #333333;
+            --text-light: #FFFFFF;
+            --background-light: #FFFFFF;
+            --background-alt: #F8F9FA;
+            --shadow: 0 4px 12px rgba(155, 93, 224, 0.2);
+            --shadow-hover: 0 8px 20px rgba(155, 93, 224, 0.3);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
+            min-height: 100vh;
+            color: var(--text-dark);
+            overflow-x: hidden;
+        }
+
+        /* Ana Container */
+        .main-container {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Popup Modal Styles */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--background-light);
+            border-radius: 20px;
+            width: 95%;
+            max-width: 1200px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            animation: slideIn 0.3s ease-out;
+            box-shadow: var(--shadow-hover);
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: var(--text-light);
+            padding: 20px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-10px) rotate(180deg); }
+        }
+
+        .modal-container {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        /* Sol Sidebar - Oyun Menüsü */
+        .sidebar {
+            width: 250px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            border-right: 2px solid rgba(155, 93, 224, 0.1);
+            box-shadow: var(--shadow);
+            overflow-y: auto;
+            max-height: 100vh;
+        }
+
+        .sidebar h2 {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+            padding-bottom: 10px;
+        }
+
+        .sidebar h2::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 60px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+            border-radius: 3px;
+        }
+
+        .scene-button {
+            padding: 12px 15px;
+            border-radius: 12px;
+            border: 2px solid transparent;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary-color));
+            color: var(--text-light);
+            cursor: pointer;
+            font-size: 0.85rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            text-align: center;
+            box-shadow: var(--shadow);
+        }
+
+        .scene-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .scene-button:hover::before {
+            left: 100%;
+        }
+
+        .scene-button:hover {
+            transform: translateX(5px) scale(1.02);
+            box-shadow: var(--shadow-hover);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .scene-button.active {
+            background: linear-gradient(135deg, var(--accent-light), var(--accent-color));
+            border-color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Orta Alan - İçerik */
+        .content-area {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        /* Karakter Oluşturucu Stilleri */
+        .preview-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .selection-section {
+            flex: 1;
+            position: relative;
+        }
+
+        .character-preview {
+            position: relative;
+            width: 300px;
+            height: 400px;
+            margin: 20px auto;
+            border: 3px solid var(--primary-light);
+            border-radius: 15px;
+            background: linear-gradient(145deg, #f7fafc, #edf2f7);
+            overflow: hidden;
+            box-shadow: inset 0 2px 10px rgba(0,0,0,0.1), var(--shadow);
+        }
+
+        .character-layer {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            object-fit: contain;
+        }
+
+        #headLayer {
+            top: -5%;
+            height: 50%;
+        }
+
+        #bodyLayer {
+            top: 33%;
+            height: 50%;
+        }
+
+        #legsLayer {
+            top: 60%;
+            height: 40%;
+        }
+
+        #baseCharacter {
+            top: 0;
+            height: 100%;
+        }
+
+        .selection-category {
+            margin-bottom: 25px;
+            background: var(--background-alt);
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+        }
+
+        .category-title {
+            font-size: 1.1em;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            text-align: center;
+            font-weight: bold;
+            position: relative;
+            padding-bottom: 8px;
+        }
+
+        .category-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 40px;
+            height: 2px;
+            background: var(--primary-color);
+            border-radius: 2px;
+        }
+
+        .options-grid {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .option-item {
+            background: white;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            flex: 0 0 auto;
+            box-shadow: var(--shadow);
+        }
+
+        .option-item:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-hover);
+            border-color: var(--primary-color);
+        }
+
+        .option-item.selected {
+            border-color: var(--primary-color);
+            background: linear-gradient(135deg, rgba(155, 93, 224, 0.1), rgba(122, 61, 189, 0.1));
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(155, 93, 224, 0.3);
+        }
+
+        .option-item img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            margin-bottom: 5px;
+            border-radius: 6px;
+        }
+
+        .option-item span {
+            display: block;
+            font-size: 0.75em;
+            color: var(--text-dark);
+            font-weight: bold;
+        }
+
+        .complete-button {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-hover);
+            margin: 20px auto;
+            display: block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .complete-button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .complete-button:hover::before {
+            left: 100%;
+        }
+
+        .complete-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(155, 93, 224, 0.6);
+        }
+
+        /* Unity Oyun Stilleri */
+        .unity-game {
+            display: flex;
+            width: 100%;
+            align-items: center;
+            justify-content: center;
+            animation: fadeInScale 0.5s ease-out;
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        #unity-container {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        #unity-canvas {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        #unity-loading-bar {
+            width: 800px;
+            height: 18px;
+            margin-top: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 9px;
+            overflow: hidden;
+        }
+
+        #unity-progress-bar-full {
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--primary-dark));
+            transition: width 0.3s ease;
+            border-radius: 9px;
+        }
+
+        #unity-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            color: var(--text-light);
+        }
+
+         #unity-fullscreen-button {
+        width: 42px;
+        height: 42px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #a259ff, #7a1fff);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(122, 31, 255, 0.3);
+    }
+
+    #unity-fullscreen-button:hover {
+        transform: scale(1.1);
+        background: linear-gradient(135deg, #b37aff, #8a2fff);
+        box-shadow: 0 6px 18px rgba(138, 47, 255, 0.4);
+    }
+
+    #unity-fullscreen-button:active {
+        transform: scale(0.95);
+        box-shadow: 0 2px 8px rgba(138, 47, 255, 0.3);
+    }
+
+    #unity-fullscreen-button i {
+        color: white;
+        font-size: 18px;
+        transition: color 0.3s ease;
+    }
+
+    #unity-fullscreen-button:hover i {
+        color: #f9f9ff;
+    }
+
+        /* Karakter Asistan */
+        .pinocchio-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+
+        .character-assistant-preview {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 10px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: var(--shadow);
+        }
+
+        .character-assistant-preview:hover {
+            transform: scale(1.05);
+        }
+
+        .pinocchio-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            background: none;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+        }
+
+        .assistant-layers {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: calc(100% - 20px);
+            height: calc(100% - 20px);
+            pointer-events: none;
+        }
+
+        .assistant-layer {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+
+        #assistantHeadLayer {
+            top: -5%;
+            height: 50%;
+        }
+
+        #assistantBodyLayer {
+            top: 33%;
+            height: 50%;
+        }
+
+        #assistantLegsLayer {
+            top: 60%;
+            height: 40%;
+        }
+
+        /* Geliştirilmiş Konuşma Balonu */
+        .speech-bubble {
+            position: absolute;
+            bottom: 190px;
+            right: -50px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98));
+            backdrop-filter: blur(20px);
+            padding: 25px 30px;
+            border-radius: 25px;
+            border: 3px solid rgba(155, 93, 224, 0.4);
+            box-shadow: 
+                0 20px 40px rgba(0, 0, 0, 0.15),
+                0 5px 15px rgba(155, 93, 224, 0.2),
+                inset 0 1px 3px rgba(255, 255, 255, 0.8);
+            max-width: 420px;
+            min-width: 280px;
+            transform: translateY(30px) scale(0);
+            opacity: 0;
+            transition: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            color: var(--text-dark);
+            font-weight: 500;
+            line-height: 1.6;
+            font-size: 16px;
+            z-index: 1001;
+        }
+
+        .speech-bubble.show {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+
+        /* Konuşma balonu ok işareti */
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            right: 80px;
+            width: 30px;
+            height: 30px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.98));
+            border: 3px solid rgba(155, 93, 224, 0.4);
+            border-top: none;
+            border-left: none;
+            transform: rotate(45deg);
+            backdrop-filter: blur(20px);
+        }
+
+        /* İçerik stilleri */
+        .speech-bubble p {
+            margin-bottom: 0;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .speech-bubble p strong {
+            color: var(--primary-color);
+            font-weight: 700;
+            font-size: 17px;
+        }
+
+        .speech-bubble .bubble-content {
+            margin-bottom: 20px;
+        }
+
+        .speech-bubble .bubble-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 18px;
+        }
+
+        .bubble-btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(155, 93, 224, 0.3);
+            position: relative;
+            overflow: hidden;
+            min-width: 100px;
+        }
+
+        .bubble-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.3s;
+        }
+
+        .bubble-btn:hover::before {
+            left: 100%;
+        }
+
+        .bubble-btn:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(155, 93, 224, 0.4);
+        }
+
+        .bubble-btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* İkinci tip buton stili */
+        .bubble-btn.secondary {
+            background: linear-gradient(135deg, #718096, #4a5568);
+            box-shadow: 0 4px 12px rgba(113, 128, 150, 0.3);
+        }
+
+        .bubble-btn.secondary:hover {
+            box-shadow: 0 6px 20px rgba(113, 128, 150, 0.4);
+        }
+
+        /* Başarı mesajı için özel stil */
+        .bubble-btn.success {
+            background: linear-gradient(135deg, #48bb78, #38a169);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+
+        .bubble-btn.success:hover {
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.4);
+        }
+
+        /* Emoji ve icon desteği */
+        .speech-bubble .emoji {
+            font-size: 20px;
+            margin-right: 8px;
+        }
+
+        .speech-bubble .highlight {
+            background: linear-gradient(135deg, rgba(155, 93, 224, 0.1), rgba(122, 61, 189, 0.1));
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .error-message {
+            text-align: center;
+            color: #e53e3e;
+            font-style: italic;
+            margin-top: 10px;
+        }
+
+        /* Unity Uyarı Banner */
+        #unity-warning {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2000;
+            min-width: 300px;
+            text-align: center;
+            display: none;
+        }
+
+        /* Responsive Tasarım */
+        @media (max-width: 1200px) {
+            .main-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 8px;
+                padding: 15px;
+                max-height: 100px;
+            }
+            
+            .scene-button {
+                min-width: 120px;
+                padding: 8px 12px;
+                font-size: 0.8rem;
+            }
+            
+            .modal-container {
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            .character-preview {
+                width: 250px;
+                height: 350px;
+            }
+            
+            .pinocchio-container {
+                bottom: 10px;
+                right: 10px;
+            }
+            
+            .character-assistant-preview {
+                width: 100px;
+                height: 100px;
+            }
+            
+            /* Mobil için konuşma balonu ayarları */
+            .speech-bubble {
+                bottom: 120px;
+                right: -20px;
+                max-width: 300px;
+                min-width: 220px;
+                padding: 20px 25px;
+                font-size: 14px;
+            }
+
+            .speech-bubble::after {
+                right: 50px;
+                width: 25px;
+                height: 25px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #unity-canvas {
+                width: 400px !important;
+                height: 400px !important;
+            }
+            
+            #unity-loading-bar {
+                width: 400px;
+            }
+            
+            .options-grid {
+                gap: 8px;
+            }
+            
+            .option-item img {
+                width: 35px;
+                height: 35px;
+            }
+
+            /* Çok küçük ekranlar için */
+            .speech-bubble {
+                max-width: 280px;
+                min-width: 200px;
+                padding: 18px 22px;
+                font-size: 13px;
+                right: -10px;
+            }
+
+            .bubble-btn {
+                padding: 10px 16px;
+                font-size: 13px;
+                min-width: 90px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .speech-bubble {
+                max-width: 250px;
+                min-width: 180px;
+                padding: 15px 18px;
+                right: 0;
+            }
+
+            .speech-bubble::after {
+                right: 30px;
+                width: 20px;
+                height: 20px;
+            }
+        }
+    </style>
+</head>
 <body>
-    <div id="unity-container" class="unity-desktop">
-        <canvas id="unity-canvas" width=800 height=800 tabindex="-1"></canvas>
-        <div id="unity-loading-bar">
-            <div id="unity-logo"></div>
-            <div id="unity-progress-bar-empty">
-                <div id="unity-progress-bar-full"></div>
+    <div class="main-container">
+        <!-- Sol Sidebar - Oyun Menüsü -->
+        <div class="sidebar">
+            <h2>Ürünler</h2>
+            <button class="scene-button active" onclick="loadScene(0, 'Tayyare')">Tayyare</button>
+            <button class="scene-button" onclick="loadScene(1, 'Fil Robot')">Fil Robot</button>
+            <button class="scene-button" onclick="loadScene(2, 'Kuzu Robot')">Kuzu Robot</button>
+            <button class="scene-button" onclick="loadScene(3, 'Denge Kuşu')">Denge Kuşu</button>
+            <button class="scene-button" onclick="loadScene(4, 'Ledli Uçak')">Ledli Uçak</button>
+            <button class="scene-button" onclick="loadScene(5, 'Güneş Enerjili Uçak')">Güneş Enerjili Uçak</button>
+            <button class="scene-button" onclick="loadScene(6, 'Kaan Masa Lambası')">Kaan Masa Lambası</button>
+            <button class="scene-button" onclick="loadScene(7, 'Cizz Devre')">Cizz Devre</button>
+            <button class="scene-button" onclick="loadScene(8, 'Ledli Gemi')">Ledli Gemi</button>
+            <button class="scene-button" onclick="loadScene(9, 'Ledli İha')">Ledli İha</button>
+            <button class="scene-button" onclick="loadScene(10, 'Basket Potası')">Basket Potası</button>
+            <button class="scene-button" onclick="loadScene(11, 'Damla Sulama')">Damla Sulama</button>
+            <button class="scene-button" onclick="loadScene(12, 'Tank')">Tank</button>
+            <button class="scene-button" onclick="loadScene(13, 'Horoz')">Işıklı Horoz</button>
+            <button class="scene-button" onclick="loadScene(14, 'Ev')">Elektronik Ev</button>
+            <button class="scene-button" onclick="loadScene(15, 'Araba')">Pervaneli Araba</button>
+            <button class="scene-button" onclick="loadScene(16, 'Paralel')">Peralel Devre</button>
+            <button class="scene-button" onclick="loadScene(17, 'Seri')">Seri Devre</button>
+            <div id="unity-footer">
+               <div id="unity-fullscreen-button">
+                    <i class="fa-solid fa-up-right-and-down-left-from-center"></i>
+                </div>
+
+                <div id="unity-build-title"></div>
             </div>
         </div>
-        <div id="unity-warning"> </div>
-        <div id="unity-footer">
-            <div id="unity-webgl-logo"></div>
-            <div id="unity-fullscreen-button"></div>
-            <div id="unity-build-title">UnityTest</div>
+
+        <!-- Ana İçerik Alanı - Unity Oyun -->
+        <div class="content-area">
+            <div class="unity-game" id="unityGame">
+                <div id="unity-container" class="unity-desktop">
+                    <canvas id="unity-canvas" width=800 height=800 tabindex="-1"></canvas>
+                    <div id="unity-loading-bar">
+                        <div id="unity-logo"></div>
+                        <div id="unity-progress-bar-empty">
+                            <div id="unity-progress-bar-full"></div>
+                        </div>
+                    </div>
+                    
+                </div>
+            </div>
         </div>
     </div>
-    <script>
 
+    <!-- Popup Modal - Karakter Oluşturucu -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1>Karakter Oluşturucu</h1>
+            </div>
+            
+            <div class="modal-container">
+                <!-- Sol taraf - Karakter Önizleme -->
+                <div class="preview-section">
+                    <h2>Karakter Önizleme</h2>
+                    <div class="character-preview" id="characterPreview">
+                        <img src="img/karakter.webp" alt="Karakter" class="character-layer" id="baseCharacter">
+                        <img src="" alt="Baş" class="character-layer" id="headLayer" style="display: none;">
+                        <img src="" alt="Gövde" class="character-layer" id="bodyLayer" style="display: none;">
+                        <img src="" alt="Bacak" class="character-layer" id="legsLayer" style="display: none;">
+                    </div>
+                    <div id="errorMessage" class="error-message"></div>
+                </div>
+
+                <!-- Sağ taraf - Öğe Seçimi -->
+                <div class="selection-section">
+                    
+                    <!-- Baş Seçimi -->
+                    <div class="selection-category">
+                        <div class="category-title">Baş</div>
+                        <div class="options-grid">
+                            <div class="option-item" data-category="head" data-value="hat1.webp">
+                                <img src="img/hat1.webp" alt="Hat 1">
+                                <span>Hat 1</span>
+                            </div>
+                            <div class="option-item" data-category="head" data-value="hat2.webp">
+                                <img src="img/hat2.webp" alt="Hat 2">
+                                <span>Hat 2</span>
+                            </div>
+                            <div class="option-item" data-category="head" data-value="hat3.webp">
+                                <img src="img/hat3.webp" alt="Hat 3">
+                                <span>Hat 3</span>
+                            </div>
+                            <div class="option-item" data-category="head" data-value="hat4.webp">
+                                <img src="img/hat4.webp" alt="Hat 4">
+                                <span>Hat 4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gövde Seçimi -->
+                    <div class="selection-category">
+                        <div class="category-title">Gövde</div>
+                        <div class="options-grid">
+                            <div class="option-item" data-category="body" data-value="tshirt1.webp">
+                                <img src="img/tshirt1.webp" alt="T-Shirt 1">
+                                <span>T-Shirt 1</span>
+                            </div>
+                            <div class="option-item" data-category="body" data-value="tshirt2.webp">
+                                <img src="img/tshirt2.webp" alt="T-Shirt 2">
+                                <span>T-Shirt 2</span>
+                            </div>
+                            <div class="option-item" data-category="body" data-value="tshirt3.webp">
+                                <img src="img/tshirt3.webp" alt="T-Shirt 3">
+                                <span>T-Shirt 3</span>
+                            </div>
+                            <div class="option-item" data-category="body" data-value="tshirt4.webp">
+                                <img src="img/tshirt4.webp" alt="T-Shirt 4">
+                                <span>T-Shirt 4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bacak Seçimi -->
+                    <div class="selection-category">
+                        <div class="category-title">Bacaklar</div>
+                        <div class="options-grid">
+                            <div class="option-item" data-category="legs" data-value="pants1.webp">
+                                <img src="img/pants1.webp" alt="Pantolon 1">
+                                <span>Pantolon 1</span>
+                            </div>
+                            <div class="option-item" data-category="legs" data-value="pants2.webp">
+                                <img src="img/pants2.webp" alt="Pantolon 2">
+                                <span>Pantolon 2</span>
+                            </div>
+                            <div class="option-item" data-category="legs" data-value="pants3.webp">
+                                <img src="img/pants3.webp" alt="Pantolon 3">
+                                <span>Pantolon 3</span>
+                            </div>
+                            <div class="option-item" data-category="legs" data-value="pants4.webp">
+                                <img src="img/pants4.webp" alt="Pantolon 4">
+                                <span>Pantolon 4</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button class="complete-button" id="completeButton">Karakteri Tamamla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Karakter Asistan (sağ alt) -->
+    <div class="pinocchio-container" id="characterAssistant" style="display: none;">
+        <div class="speech-bubble" id="speechBubble"></div>
+        <div class="character-assistant-preview" onclick="toggleSpeechBubble()">
+            <img src="img/karakter.webp" alt="Karakter Asistan" class="pinocchio-image" id="assistantCharacterImg">
+            <div class="assistant-layers">
+                <img src="" alt="Baş" class="assistant-layer" id="assistantHeadLayer" style="display: none;">
+                <img src="" alt="Gövde" class="assistant-layer" id="assistantBodyLayer" style="display: none;">
+                <img src="" alt="Bacak" class="assistant-layer" id="assistantLegsLayer" style="display: none;">
+            </div>
+        </div>
+    </div>
+
+    <!-- Unity Uyarı Banner -->
+    <div id="unity-warning"></div>
+
+    <script>
+        // Karakter oluşturucu değişkenleri
+        let selectedItems = {
+            head: null,
+            body: null,
+            legs: null
+        };
+
+        // Unity değişkenleri
         var container = document.querySelector("#unity-container");
-        var canvas = document.querySelector("#unity-canvas");
+        var unityCanvas = document.querySelector("#unity-canvas");
         var loadingBar = document.querySelector("#unity-loading-bar");
         var progressBarFull = document.querySelector("#unity-progress-bar-full");
         var fullscreenButton = document.querySelector("#unity-fullscreen-button");
         var warningBanner = document.querySelector("#unity-warning");
+        var unityInstance = null;
 
-        // Shows a temporary message banner/ribbon for a few seconds, or
-        // a permanent error message on top of the canvas if type=='error'.
-        // If type=='warning', a yellow highlight color is used.
-        // Modify or remove this function to customize the visually presented
-        // way that non-critical warnings and error messages are presented to the
-        // user.
-        function unityShowBanner(msg, type) {
-            function updateBannerVisibility() {
-                warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        // Unity başlatma fonksiyonu
+        function initUnity() {
+            function unityShowBanner(msg, type) {
+                function updateBannerVisibility() {
+                    warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+                }
+                var div = document.createElement('div');
+                div.innerHTML = msg;
+                warningBanner.appendChild(div);
+                if (type == 'error') div.style = 'background: red; padding: 10px; border-radius: 8px; color: white;';
+                else if (type == 'warning') {
+                    div.style = 'background: yellow; padding: 10px; border-radius: 8px; color: black;';
+                    setTimeout(function() {
+                        warningBanner.removeChild(div);
+                        updateBannerVisibility();
+                    }, 5000);
+                }
+                updateBannerVisibility();
             }
-            var div = document.createElement('div');
-            div.innerHTML = msg;
-            warningBanner.appendChild(div);
-            if (type == 'error') div.style = 'background: red; padding: 10px;';
-            else {
-                if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
-                setTimeout(function () {
-                    warningBanner.removeChild(div);
-                    updateBannerVisibility();
-                }, 5000);
+
+            var buildUrl = "WebBuild/Build";
+            var loaderUrl = buildUrl + "/WebBuild.loader.js";
+            var config = {
+                dataUrl: buildUrl + "/WebBuild.data",
+                frameworkUrl: buildUrl + "/WebBuild.framework.js",
+                codeUrl: buildUrl + "/WebBuild.wasm",
+                streamingAssetsUrl: "StreamingAssets",
+                companyName: "DefaultCompany",
+                productName: "UnityTest",
+                productVersion: "0.1",
+                showBanner: unityShowBanner,
+            };
+
+            if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+                var meta = document.createElement('meta');
+                meta.name = 'viewport';
+                meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+                document.getElementsByTagName('head')[0].appendChild(meta);
+                container.className = "unity-mobile";
+                unityCanvas.className = "unity-mobile";
+            } else {
+                unityCanvas.style.width = "800px";
+                unityCanvas.style.height = "800px";
             }
-            updateBannerVisibility();
+
+            loadingBar.style.display = "block";
+
+            var script = document.createElement("script");
+            script.src = loaderUrl;
+            script.onload = () => {
+                createUnityInstance(unityCanvas, config, (progress) => {
+                    progressBarFull.style.width = 100 * progress + "%";
+                }).then((instance) => {
+                    unityInstance = instance;
+                    loadingBar.style.display = "none";
+                    fullscreenButton.onclick = () => {
+                        unityInstance.SetFullscreen(1);
+                    };
+
+                    // Unity hazır olunca Tayyare sahnesi otomatik yüklensin
+                    setTimeout(() => {
+                        loadScene(0, 'Tayyare');
+                    }, 1000);
+
+                }).catch((message) => {
+                    alert(message);
+                });
+            };
+            document.body.appendChild(script);
         }
 
-        var buildUrl = "Build";
-        var loaderUrl = buildUrl + "/WebBuild.loader.js";
-        var config = {
-            dataUrl: buildUrl + "/WebBuild.data",
-            frameworkUrl: buildUrl + "/WebBuild.framework.js",
-            codeUrl: buildUrl + "/WebBuild.wasm",
-            streamingAssetsUrl: "StreamingAssets",
-            companyName: "DefaultCompany",
-            productName: "UnityTest",
-            productVersion: "0.1",
-            showBanner: unityShowBanner,
-        };
-
-        // By default, Unity keeps WebGL canvas render target size matched with
-        // the DOM size of the canvas element (scaled by window.devicePixelRatio)
-        // Set this to false if you want to decouple this synchronization from
-        // happening inside the engine, and you would instead like to size up
-        // the canvas DOM size and WebGL render target sizes yourself.
-        // config.matchWebGLToCanvasSize = false;
-
-        // If you would like all file writes inside Unity Application.persistentDataPath
-        // directory to automatically persist so that the contents are remembered when
-        // the user revisits the site the next time, uncomment the following line:
-        // config.autoSyncPersistentDataPath = true;
-        // This autosyncing is currently not the default behavior to avoid regressing
-        // existing user projects that might rely on the earlier manual
-        // JS_FileSystem_Sync() behavior, but in future Unity version, this will be
-        // expected to change.
-
-        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-            // Mobile device style: fill the whole browser client area with the game canvas:
-
-            var meta = document.createElement('meta');
-            meta.name = 'viewport';
-            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
-            document.getElementsByTagName('head')[0].appendChild(meta);
-            container.className = "unity-mobile";
-            canvas.className = "unity-mobile";
-
-            // To lower canvas resolution on mobile devices to gain some
-            // performance, uncomment the following line:
-            // config.devicePixelRatio = 1;
-
-
-        } else {
-            // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
-
-            canvas.style.width = "800px";
-            canvas.style.height = "800px";
+        // Popup açma/kapama
+        function openCharacterCreator() {
+            document.getElementById('modalOverlay').classList.add('show');
         }
 
-        loadingBar.style.display = "block";
+        function closeCharacterCreator() {
+            document.getElementById('modalOverlay').classList.remove('show');
+        }
 
-        var script = document.createElement("script");
-        script.src = loaderUrl;
-        script.onload = () => {
-            createUnityInstance(canvas, config, (progress) => {
-                progressBarFull.style.width = 100 * progress + "%";
-            }).then((unityInstance) => {
-                loadingBar.style.display = "none";
-                fullscreenButton.onclick = () => {
-                    unityInstance.SetFullscreen(1);
-                };
-            }).catch((message) => {
-                alert(message);
+        // Karakter seçim işlevselliği
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.option-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const category = this.dataset.category;
+                    const value = this.dataset.value;
+                    
+                    // Aynı kategorideki diğer seçimleri kaldır
+                    document.querySelectorAll(`[data-category="${category}"]`).forEach(el => {
+                        el.classList.remove('selected');
+                    });
+                    
+                    // Bu öğeyi seçili yap
+                    this.classList.add('selected');
+                    selectedItems[category] = value;
+                    
+                    updatePreview();
+                });
             });
-        };
+        });
 
-        document.body.appendChild(script);
+        function updatePreview() {
+            const headLayer = document.getElementById('headLayer');
+            const bodyLayer = document.getElementById('bodyLayer');
+            const legsLayer = document.getElementById('legsLayer');
+            const errorMessage = document.getElementById('errorMessage');
+            
+            errorMessage.textContent = '';
 
+            // Seçilen öğeleri önizlemede göster
+            if (selectedItems.head) {
+                headLayer.src = `img/${selectedItems.head}`;
+                headLayer.style.display = 'block';
+                headLayer.onerror = () => {
+                    errorMessage.textContent = 'Baş resmi yüklenemedi. Dosya yolunu kontrol edin.';
+                };
+            } else {
+                headLayer.style.display = 'none';
+            }
+
+            if (selectedItems.body) {
+                bodyLayer.src = `img/${selectedItems.body}`;
+                bodyLayer.style.display = 'block';
+                bodyLayer.onerror = () => {
+                    errorMessage.textContent = 'Gövde resmi yüklenemedi. Dosya yolunu kontrol edin.';
+                };
+            } else {
+                bodyLayer.style.display = 'none';
+            }
+
+            if (selectedItems.legs) {
+                legsLayer.src = `img/${selectedItems.legs}`;
+                legsLayer.style.display = 'block';
+                legsLayer.onerror = () => {
+                    errorMessage.textContent = 'Bacak resmi yüklenemedi. Dosya yolunu kontrol edin.';
+                };
+            } else {
+                legsLayer.style.display = 'none';
+            }
+        }
+
+        // Karakter asistanını güncelleme
+        function updateCharacterAssistant() {
+            const assistantHeadLayer = document.getElementById('assistantHeadLayer');
+            const assistantBodyLayer = document.getElementById('assistantBodyLayer');
+            const assistantLegsLayer = document.getElementById('assistantLegsLayer');
+
+            // Seçilen öğeleri asistan karakterde göster
+            if (selectedItems.head) {
+                assistantHeadLayer.src = `img/${selectedItems.head}`;
+                assistantHeadLayer.style.display = 'block';
+            } else {
+                assistantHeadLayer.style.display = 'none';
+            }
+
+            if (selectedItems.body) {
+                assistantBodyLayer.src = `img/${selectedItems.body}`;
+                assistantBodyLayer.style.display = 'block';
+            } else {
+                assistantBodyLayer.style.display = 'none';
+            }
+
+            if (selectedItems.legs) {
+                assistantLegsLayer.src = `img/${selectedItems.legs}`;
+                assistantLegsLayer.style.display = 'block';
+            } else {
+                assistantLegsLayer.style.display = 'none';
+            }
+        }
+
+        // Karakter tamamlama
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('completeButton').addEventListener('click', function() {
+                const characterAssistant = document.getElementById('characterAssistant');
+                
+                // Karakter asistanını güncelle ve göster
+                updateCharacterAssistant();
+                characterAssistant.style.display = 'block';
+                
+                // Popup'ı kapat
+                closeCharacterCreator();
+                
+                // Başarı mesajı göster
+                setTimeout(() => {
+                    showSuccessMessage();
+                }, 500);
+            });
+        });
+
+        // Unity sahne yükleme fonksiyonu
+        function loadScene(index, sceneName) {
+            // Önce aktif butonu güncelle
+            document.querySelectorAll('.scene-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            if (!unityInstance) return;
+            unityInstance.SendMessage("CameraController", "LoadScene", String(index));
+            showSceneMessage(sceneName);
+        }
+
+        // Sahne mesajı gösterme
+        function showSceneMessage(sceneName) {
+            const speechBubble = document.getElementById('speechBubble');
+            speechBubble.innerHTML = `
+                <div class="bubble-content">
+                    <p><span class="emoji">🎮</span><strong>${sceneName}</strong> yükleniyor!</p>
+                    <p>Bu oyunu oynamak için hazır mısınız? Eğlenceli vakit geçireceğinize eminim!</p>
+                </div>
+                <div class="bubble-actions">
+                    <button class="bubble-btn" onclick="hideSpeechBubble()">
+                        <i class="fa-solid fa-play" style="margin-right: 5px;"></i>Hadi Başlayalım!
+                    </button>
+                </div>
+            `;
+            speechBubble.classList.add('show');
+        }
+
+        // Başarı mesajı gösterme
+        function showSuccessMessage() {
+            const speechBubble = document.getElementById('speechBubble');
+            speechBubble.innerHTML = `
+                <div class="bubble-content">
+                    <p><span class="emoji">🎉</span><strong>Tebrikler!</strong></p>
+                    <p>Karakteriniz başarıyla oluşturuldu! Şimdi oyunları keşfetmeye başlayabilirsiniz.</p>
+                </div>
+                <div class="bubble-actions">
+                    <button class="bubble-btn success" onclick="hideSpeechBubble()">
+                        <i class="fa-solid fa-check" style="margin-right: 5px;"></i>Harika!
+                    </button>
+                </div>
+            `;
+            speechBubble.classList.add('show');
+        }
+
+        // Konuşma balonu açma/kapama
+        function toggleSpeechBubble() {
+            const speechBubble = document.getElementById('speechBubble');
+            if (speechBubble.classList.contains('show')) {
+                hideSpeechBubble();
+            } else {
+                showGeneralMessage();
+            }
+        }
+
+        function hideSpeechBubble() {
+            const speechBubble = document.getElementById('speechBubble');
+            speechBubble.classList.remove('show');
+        }
+
+        // Genel karakter asistan mesajı
+        function showGeneralMessage() {
+            const speechBubble = document.getElementById('speechBubble');
+            speechBubble.innerHTML = `
+                <div class="bubble-content">
+                    <p><span class="emoji">👋</span><strong>Merhaba!</strong></p>
+                    <p>Ben sizin oluşturduğunuz karakter! Size yardımcı olmak için buradayım. Ne yapmak istersiniz?</p>
+                </div>
+                <div class="bubble-actions">
+                    <button class="bubble-btn" onclick="openCharacterCreator()">
+                        <i class="fa-solid fa-user-edit" style="margin-right: 5px;"></i>Karakter Değiştir
+                    </button>
+                    <button class="bubble-btn secondary" onclick="hideSpeechBubble()">
+                        <i class="fa-solid fa-times" style="margin-right: 5px;"></i>Kapat
+                    </button>
+                </div>
+            `;
+            speechBubble.classList.add('show');
+        }
+
+        // Yeni fonksiyon: Unity'den gelen parça adını göster
+        function SiradakiParca(parcaAdi) {
+            const speechBubble = document.getElementById('speechBubble');
+
+            // Önceki zamanlayıcıyı temizle (varsa)
+            if (window.speechBubbleTimer) {
+                clearTimeout(window.speechBubbleTimer);
+                window.speechBubbleTimer = null;
+            }
+
+            // Son parça kontrolü (Unity son parçadan sonra "none" veya null gönderiyor)
+            const isFinish = !parcaAdi || parcaAdi.toLowerCase() === "none";
+
+            speechBubble.innerHTML = isFinish
+                ? `
+                    <div class="bubble-content">
+                        <p><span class="emoji">🎉</span><strong>Tebrikler!</strong></p>
+                        <p>Tüm parçalar başarıyla yerleştirildi! Harika bir iş çıkardınız.</p>
+                    </div>
+                    <div class="bubble-actions">
+                        <button class="bubble-btn success" onclick="hideSpeechBubble()">
+                            <i class="fa-solid fa-trophy" style="margin-right: 5px;"></i>Süper!
+                        </button>
+                    </div>
+                  `
+                : `
+                    <div class="bubble-content">
+                        <p><span class="emoji">🔧</span><strong>Sıradaki Parça:</strong></p>
+                        <p><span class="highlight">${parcaAdi}</span> parçasını yerleştirmeniz gerekiyor.</p>
+                    </div>
+                  `;
+
+            speechBubble.classList.add('show');
+
+            // 60 saniye sonra otomatik olarak gizle (güvenlik için)
+            window.speechBubbleTimer = setTimeout(() => {
+                hideSpeechBubble();
+            }, 60000); // 60 saniye
+        }
+
+        // Sayfa yüklendiğinde
+        window.addEventListener('load', function() {
+            // Unity'yi arka planda başlat
+            initUnity();
+
+            // Base karakterin yüklenip yüklenmediğini kontrol et
+            const baseCharacter = document.getElementById('baseCharacter');
+            baseCharacter.onerror = () => {
+                document.getElementById('errorMessage').textContent = 'Ana karakter resmi yüklenemedi. img/karakter.webp dosyasının var olduğundan emin olun.';
+            };
+
+            // Sayfa yüklendiğinde popup açılır
+            setTimeout(() => {
+                openCharacterCreator();
+            }, 1000);
+        });
     </script>
 </body>
-
 </html>
